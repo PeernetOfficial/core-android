@@ -1,6 +1,7 @@
 package com.peernet.test
 
 import android.Manifest
+import android.content.ContentValues.TAG
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
@@ -11,86 +12,136 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.annotations.AfterPermissionGranted
-import mobilecore.Mobilecore
+import mobile.Mobile
 import androidx.core.app.ActivityCompat.requestPermissions
 
 import android.os.Build
+import android.provider.Settings
+import android.util.Log
+import com.android.volley.Request
 
-import androidx.annotation.RequiresApi
-
-
+import com.android.volley.Request.Method.GET
+import com.android.volley.Response
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
+import java.io.IOException
 
 
 class MainActivity : AppCompatActivity() {
+
+    //private val client = OkHttpClient()
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+
+        Mobile.mobileMain(this.filesDir.absolutePath)
+
+        val queue = Volley.newRequestQueue(this)
+        val url = "http://127.0.0.1:5125/status"
 
 
 
+// Request a string response from the provided URL.
+        val stringRequest = StringRequest(
+            Request.Method.GET, url,
+            Response.Listener<String> { response ->
+                //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+                // Display the first 500 characters of the response string.
+               // textView.text = "Response is: ${response.substring(0, 500)}"
+                //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
+                val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+                connectionLabel.text = response.toString()
+               // Log.d("myTag", "Response is: ${response.substring(0, 500)}");
+            },
+            Response.ErrorListener { errorresponse ->
+                val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+                connectionLabel.text = errorresponse.toString()
+                Log.d("myTag",  errorresponse.toString());
+            })
 
-        if (Build.VERSION.SDK_INT >= 23) {
-            askForPermissions(
-                arrayOf<String>(
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                ),//for both GPS and Network Provider
-                REQUEST_PERMISSIONS_CODE
-            );
-        }
+// Add the request to the RequestQueue.
+       queue.add(stringRequest)
 
-        connectionLabel.text = Mobilecore.mobileCoreStart().toString()
 
+     //   run("http://127.0.0.1:5125/status")
+
+        requestAppPermissions();
+        //Mobilecore.mobileCoreStart()
+
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            if (!Settings.System.canWrite(this)) {
+//                requestPermissions(
+//                    arrayOf(
+//                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//                        Manifest.permission.READ_EXTERNAL_STORAGE
+//                    ), 2909
+//                )
+//            } else {
+//                connectionLabel.text = Mobilecore.mobileCoreStart().toString()
+//            }
+//        } else {
+//            connectionLabel.text = Mobilecore.mobileCoreStart().toString()
+//        }
 
     }
 
-    val REQUEST_PERMISSIONS_CODE = 1982
+//    fun run(url: String) {
+//        val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+//        val request = Request.Builder()
+//            .url(url)
+//            .build()
+//
+//        client.newCall(request).enqueue(object : Callback {
+//            override fun onFailure(call: Call, e: IOException) {}
+//           // override fun onResponse(call: Call, response: Response) = println(response.body()?.string())
+//            override fun onResponse(call: Call, response: Response) {
+//                /* This will print the response of the network call to the Logcat */
+//               connectionLabel.text = response.body()?.string()
+//                //Log.d("TAG_", response.body())
+//            }
+//        })
+//    }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    fun askForPermissions(permissions: Array<String>, requestCode: Int) {
-        val permissionsToRequest: MutableList<String> = ArrayList()
-        for (permission in permissions) {
-            if (checkSelfPermission(permission) !=
-                PackageManager.PERMISSION_GRANTED
-            ) {
-                //permision which have not been granted need to be request again
-                permissionsToRequest.add(permission)
-            }
+
+    private fun requestAppPermissions() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return
         }
-        if (!permissionsToRequest.isEmpty()) {
-            //nếu gửi 2 lệnh request liên tiếp thì, request đầu tiên sẽ đc xử lý, request sau sẽ bị loại bỏ
-            // vì thế chỉ gửi từng request 1 thôi
-            // nếu có nhiều permision thì phải đưa chúng vào Array cho 1 request thôi (dã test)
-            requestPermissions(permissionsToRequest.toTypedArray(), requestCode)
+        if (hasReadPermissions() && hasWritePermissions()) {
+
+         //  connectionLabel.text = "lol123"
+
+            return
         }
+        requestPermissions(
+            this, arrayOf(
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ), 1
+        ) // your request code
     }
 
-    /*
-     * Permission on for UI (Activity, Fragment). Service can not receive the response from the OS
-     * */
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_PERMISSIONS_CODE) { //dùng chung permission code hoặc riêng thì tùy
-            //check xem permission nào đc granted/deny
-            for (i in permissions.indices) {
-                val permission = permissions[i]
-                val grantResult = grantResults[i]
-                if (permission == Manifest.permission.WRITE_EXTERNAL_STORAGE) {
-                    if (grantResult == PackageManager.PERMISSION_GRANTED) {
-                        //
-                       // Log.d(TAG, "WRITE_EXTERNAL_STORAGE ok")
-                    } else {
-                        //
-                    }
-                }
-            }
-        }
+    private fun hasReadPermissions(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            baseContext,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
     }
+
+    private fun hasWritePermissions(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            baseContext,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+
+
+
+
 
 
 }
