@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         Mobile.mobileMain(this.filesDir.absolutePath)
 
         val queue = Volley.newRequestQueue(this)
-        val url = "http://127.0.0.1:5125/status"
+        val url = "http://127.0.0.1:5125/account/info"
 
 
 
@@ -52,9 +52,31 @@ class MainActivity : AppCompatActivity() {
                 // Display the first 500 characters of the response string.
                // textView.text = "Response is: ${response.substring(0, 500)}"
                 //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
+                val  connectionLabel1 = findViewById<View>(R.id.PeernetInfo1) as TextView
+                connectionLabel1.text = response.toString()
+               // Log.d("myTag", "Response is: ${response.substring(0, 500)}");
+            },
+            Response.ErrorListener { errorresponse ->
+                val  connectionLabel1 = findViewById<View>(R.id.PeernetInfo1) as TextView
+                connectionLabel1.text = errorresponse.toString()
+                Log.d("myTag",  errorresponse.toString());
+            })
+
+// Add the request to the RequestQueue.
+       queue.add(stringRequest)
+
+        val url1 = "http://127.0.0.1:5125/status"
+
+        val stringRequest1 = StringRequest(
+            Request.Method.GET, url1,
+            Response.Listener<String> { response ->
+                //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+                // Display the first 500 characters of the response string.
+                // textView.text = "Response is: ${response.substring(0, 500)}"
+                //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
                 val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
                 connectionLabel.text = response.toString()
-               // Log.d("myTag", "Response is: ${response.substring(0, 500)}");
+                // Log.d("myTag", "Response is: ${response.substring(0, 500)}");
             },
             Response.ErrorListener { errorresponse ->
                 val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
@@ -62,13 +84,13 @@ class MainActivity : AppCompatActivity() {
                 Log.d("myTag",  errorresponse.toString());
             })
 
-// Add the request to the RequestQueue.
-       queue.add(stringRequest)
+        queue.add(stringRequest1)
+
 
 
      //   run("http://127.0.0.1:5125/status")
 
-        requestAppPermissions();
+       // requestAppPermissions();
         //Mobilecore.mobileCoreStart()
 
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
