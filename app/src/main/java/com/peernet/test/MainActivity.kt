@@ -2,6 +2,7 @@ package com.peernet.test
 
 import android.Manifest
 import android.content.ContentValues.TAG
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
@@ -18,13 +19,18 @@ import androidx.core.app.ActivityCompat.requestPermissions
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import android.widget.Button
 import com.android.volley.Request
 
 import com.android.volley.Request.Method.GET
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.IOException
+import java.util.*
+import kotlin.concurrent.schedule
 
 
 class MainActivity : AppCompatActivity() {
@@ -33,62 +39,108 @@ class MainActivity : AppCompatActivity() {
 
 
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         Mobile.mobileMain(this.filesDir.absolutePath)
 
         val queue = Volley.newRequestQueue(this)
-        val url = "http://127.0.0.1:5125/account/info"
+
+        Timer().schedule(4000){
+            // do something after 1 second
+            GlobalScope.launch {
+                val url = "http://127.0.0.1:5125/account/info"
 
 
 
 // Request a string response from the provided URL.
-        val stringRequest = StringRequest(
-            Request.Method.GET, url,
-            Response.Listener<String> { response ->
-                //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
-                // Display the first 500 characters of the response string.
-               // textView.text = "Response is: ${response.substring(0, 500)}"
-                //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
-                val  connectionLabel1 = findViewById<View>(R.id.PeernetInfo1) as TextView
-                connectionLabel1.text = response.toString()
-               // Log.d("myTag", "Response is: ${response.substring(0, 500)}");
-            },
-            Response.ErrorListener { errorresponse ->
-                val  connectionLabel1 = findViewById<View>(R.id.PeernetInfo1) as TextView
-                connectionLabel1.text = errorresponse.toString()
-                Log.d("myTag",  errorresponse.toString());
-            })
+                val stringRequest = StringRequest(
+                    Request.Method.GET, url,
+                    Response.Listener<String> { response ->
+                        //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+                        // Display the first 500 characters of the response string.
+                        // textView.text = "Response is: ${response.substring(0, 500)}"
+                        //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
+                        val  connectionLabel1 = findViewById<View>(R.id.PeernetInfo1) as TextView
+                        connectionLabel1.text = response.toString()
+                        // Log.d("myTag", "Response is: ${response.substring(0, 500)}");
+                    },
+                    Response.ErrorListener { errorresponse ->
+                        val  connectionLabel1 = findViewById<View>(R.id.PeernetInfo1) as TextView
+                        connectionLabel1.text = errorresponse.toString()
+                        Log.d("myTag",  errorresponse.toString());
+                    })
 
 // Add the request to the RequestQueue.
-       queue.add(stringRequest)
+                queue.add(stringRequest)
 
-        val url1 = "http://127.0.0.1:5125/status"
+                val url1 = "http://127.0.0.1:5125/status"
 
-        val stringRequest1 = StringRequest(
-            Request.Method.GET, url1,
-            Response.Listener<String> { response ->
-                //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
-                // Display the first 500 characters of the response string.
-                // textView.text = "Response is: ${response.substring(0, 500)}"
-                //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
-                val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
-                connectionLabel.text = response.toString()
-                // Log.d("myTag", "Response is: ${response.substring(0, 500)}");
-            },
-            Response.ErrorListener { errorresponse ->
-                val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
-                connectionLabel.text = errorresponse.toString()
-                Log.d("myTag",  errorresponse.toString());
-            })
+                val stringRequest1 = StringRequest(
+                    Request.Method.GET, url1,
+                    Response.Listener<String> { response ->
+                        //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+                        // Display the first 500 characters of the response string.
+                        // textView.text = "Response is: ${response.substring(0, 500)}"
+                        //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
+                        val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+                        connectionLabel.text = response.toString()
+                        // Log.d("myTag", "Response is: ${response.substring(0, 500)}");
+                    },
+                    Response.ErrorListener { errorresponse ->
+                        val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+                        connectionLabel.text = errorresponse.toString()
+                        Log.d("myTag",  errorresponse.toString());
+                    })
 
-        queue.add(stringRequest1)
+                queue.add(stringRequest1)
+
+                val url2 = "http://127.0.0.1:5125/blockchain/file/list"
+
+                val stringRequest2 = StringRequest(
+                    Request.Method.GET, url2,
+                    Response.Listener<String> { response ->
+                        //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+                        // Display the first 500 characters of the response string.
+                        // textView.text = "Response is: ${response.substring(0, 500)}"
+                        //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
+                        val  connectionLabel = findViewById<View>(R.id.PeernetInfo2) as TextView
+                        connectionLabel.text = response.toString()
+                      //  Log.d("myTag", "Response is: ${response.substring(0, 500)}");
+                    },
+                    Response.ErrorListener { errorresponse ->
+                        val  connectionLabel = findViewById<View>(R.id.PeernetInfo2) as TextView
+                        connectionLabel.text = errorresponse.toString()
+                        Log.d("myTag",  errorresponse.toString());
+                    })
+
+                queue.add(stringRequest2)
+            }
+        }
+
+        val button = findViewById<Button>(R.id.AddFIle)
+
+        button.setOnClickListener {
+            val intent = Intent()
+                .setType("*/*")
+                .setAction(Intent.ACTION_GET_CONTENT)
+
+            startActivityForResult(Intent.createChooser(intent, "Select a file"), 777)
+        }
 
 
 
-     //   run("http://127.0.0.1:5125/status")
+
+
+
+
+
+
+        //   run("http://127.0.0.1:5125/status")
 
        // requestAppPermissions();
         //Mobilecore.mobileCoreStart()
@@ -127,6 +179,13 @@ class MainActivity : AppCompatActivity() {
 //        })
 //    }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 777) {
+            val filePath = data?.data?.path
+        }
+    }
 
     private fun requestAppPermissions() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
