@@ -38,9 +38,6 @@ class MainActivity : AppCompatActivity() {
     //private val client = OkHttpClient()
 
 
-
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -53,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         Timer().schedule(4000){
             // do something after 1 second
             GlobalScope.launch {
-                val url = "http://127.0.0.1:5125/account/info"
+                val url = "http://127.0.0.1:8881/account/info"
 
 
 
@@ -78,7 +75,7 @@ class MainActivity : AppCompatActivity() {
 // Add the request to the RequestQueue.
                 queue.add(stringRequest)
 
-                val url1 = "http://127.0.0.1:5125/status"
+                val url1 = "http://127.0.0.1:8881/status"
 
                 val stringRequest1 = StringRequest(
                     Request.Method.GET, url1,
@@ -99,7 +96,7 @@ class MainActivity : AppCompatActivity() {
 
                 queue.add(stringRequest1)
 
-                val url2 = "http://127.0.0.1:5125/blockchain/file/list"
+                val url2 = "http://127.0.0.1:8881/blockchain/file/list"
 
                 val stringRequest2 = StringRequest(
                     Request.Method.GET, url2,
@@ -131,6 +128,15 @@ class MainActivity : AppCompatActivity() {
 
             startActivityForResult(Intent.createChooser(intent, "Select a file"), 777)
         }
+
+        // Go to the search page
+        val SearchHomeButton = findViewById<Button>(R.id.SearchHomeButton)
+
+        SearchHomeButton.setOnClickListener {
+            val intent = Intent(this, Search::class.java)
+            startActivity(intent)
+        }
+
 
 
 

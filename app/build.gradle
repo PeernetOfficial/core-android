@@ -44,4 +44,5 @@ dependencies {
     implementation (name:'mobile', ext:'aar')
     implementation 'com.vmadalin:easypermissions-ktx:1.0.0'
     implementation 'com.squareup.okhttp3:okhttp:3.8.1'
+    //compile 'io.github.rybalkinsd:kohttp:0.10.0'
 }
