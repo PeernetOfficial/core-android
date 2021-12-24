@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
@@ -31,6 +33,14 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 import java.util.*
 import kotlin.concurrent.schedule
+import android.provider.MediaStore
+import java.io.File
+import android.os.Environment
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.JsonRequest
+import org.json.JSONArray
+import org.json.JSONObject
+import org.json.JSONTokener
 
 
 class MainActivity : AppCompatActivity() {
@@ -47,10 +57,10 @@ class MainActivity : AppCompatActivity() {
 
         val queue = Volley.newRequestQueue(this)
 
-        Timer().schedule(4000){
+        Timer().schedule(500){
             // do something after 1 second
             GlobalScope.launch {
-                val url = "http://127.0.0.1:8881/account/info"
+                val url = "http://127.0.0.1:5125/account/info"
 
 
 
@@ -62,20 +72,23 @@ class MainActivity : AppCompatActivity() {
                         // Display the first 500 characters of the response string.
                         // textView.text = "Response is: ${response.substring(0, 500)}"
                         //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
-                        val  connectionLabel1 = findViewById<View>(R.id.PeernetInfo1) as TextView
-                        connectionLabel1.text = response.toString()
+                        val ResponseObject = JSONTokener(response.toString()).nextValue() as JSONObject
+                        val  peerID = findViewById<View>(R.id.PeerIDFIeld) as TextView
+                        val  nodeID = findViewById<View>(R.id.NodeIDFIeld) as TextView
+                        peerID.text = ResponseObject.get("peerid").toString()
+                        nodeID.text = ResponseObject.get("nodeid").toString()
                         // Log.d("myTag", "Response is: ${response.substring(0, 500)}");
                     },
                     Response.ErrorListener { errorresponse ->
-                        val  connectionLabel1 = findViewById<View>(R.id.PeernetInfo1) as TextView
-                        connectionLabel1.text = errorresponse.toString()
+//                        val  connectionLabel1 = findViewById<View>(R.id.PeernetInfo1) as TextView
+//                        connectionLabel1.text = errorresponse.toString()
                         Log.d("myTag",  errorresponse.toString());
                     })
 
 // Add the request to the RequestQueue.
                 queue.add(stringRequest)
 
-                val url1 = "http://127.0.0.1:8881/status"
+                val url1 = "http://127.0.0.1:5125/status"
 
                 val stringRequest1 = StringRequest(
                     Request.Method.GET, url1,
@@ -84,19 +97,27 @@ class MainActivity : AppCompatActivity() {
                         // Display the first 500 characters of the response string.
                         // textView.text = "Response is: ${response.substring(0, 500)}"
                         //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
-                        val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
-                        connectionLabel.text = response.toString()
+                        // Parse response as JSON
+                        val ResponseObject = JSONTokener(response.toString()).nextValue() as JSONObject
+
+                        val  isConnected  = findViewById<View>(R.id.isConnectedField) as TextView
+                        val  numPeers  = findViewById<View>(R.id.PeerListField) as TextView
+
+                        isConnected.text = ResponseObject.get("isconnected").toString()
+                        numPeers.text = ResponseObject.get("countpeerlist").toString()
+
+                       // connectionLabel.text = response.toString()
                         // Log.d("myTag", "Response is: ${response.substring(0, 500)}");
                     },
                     Response.ErrorListener { errorresponse ->
-                        val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
-                        connectionLabel.text = errorresponse.toString()
+                        //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+                       // connectionLabel.text = errorresponse.toString()
                         Log.d("myTag",  errorresponse.toString());
                     })
 
                 queue.add(stringRequest1)
 
-                val url2 = "http://127.0.0.1:8881/blockchain/file/list"
+                val url2 = "http://127.0.0.1:5125/blockchain/file/list"
 
                 val stringRequest2 = StringRequest(
                     Request.Method.GET, url2,
@@ -105,13 +126,13 @@ class MainActivity : AppCompatActivity() {
                         // Display the first 500 characters of the response string.
                         // textView.text = "Response is: ${response.substring(0, 500)}"
                         //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
-                        val  connectionLabel = findViewById<View>(R.id.PeernetInfo2) as TextView
-                        connectionLabel.text = response.toString()
-                      //  Log.d("myTag", "Response is: ${response.substring(0, 500)}");
+//                        val  connectionLabel = findViewById<View>(R.id.PeernetInfo2) as TextView
+//                        connectionLabel.text = response.toString()
+                   //     Log.d("myTag", "Response is: ${response.substring(0, 500)}");
                     },
                     Response.ErrorListener { errorresponse ->
-                        val  connectionLabel = findViewById<View>(R.id.PeernetInfo2) as TextView
-                        connectionLabel.text = errorresponse.toString()
+//                        val  connectionLabel = findViewById<View>(R.id.PeernetInfo2) as TextView
+//                        connectionLabel.text = errorresponse.toString()
                         Log.d("myTag",  errorresponse.toString());
                     })
 
@@ -127,6 +148,8 @@ class MainActivity : AppCompatActivity() {
                 .setAction(Intent.ACTION_GET_CONTENT)
 
             startActivityForResult(Intent.createChooser(intent, "Select a file"), 777)
+
+
         }
 
         // Go to the search page
@@ -188,9 +211,151 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
+        val queue = Volley.newRequestQueue(this)
+
         if (requestCode == 777) {
-            val filePath = data?.data?.path
+            var filePath = data?.data?.path
+
+          //  data?.data
+
+           // imageFile = new File(getRealPathFromURI(selectedImageURI));
+
+        //    filePath = File((data?.data?.let { getRealPathFromURI(it) })).toString()
+
+//            var file = File(
+//                Environment.getExternalStorageDirectory().absolutePath,
+//                filePath
+//            )
+
+//            file.path
+//
+//            Log.d("myTag",  file.absolutePath)
+//
+////            val ResponseObjectSearch = JSONObject("{\"keyword\":" + file.readBytes());
+//
+//            Log.d("myTag", java.net.URLEncoder.encode(filePath.toString(), "utf-8"));
+//
+//            val UploadFilePOST = "http://127.0.0.1:8881/warehouse/create"
+//
+//            val GetRequestWithFilePath = "http://127.0.0.1:8881/warehouse/create"
+
+//            val stringRequest2 = JsonObjectRequest(
+//                Request.Method.POST, UploadFile,ResponseObjectSearch,
+//                Response.Listener<JSONObject> { response ->
+//                    //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+//                    // Display the first 500 characters of the response string.
+//                    // textView.text = "Response is: ${response.substring(0, 500)}"
+//                    //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
+//                    // val  connectionLabel = findViewById<View>(R.id.PeernetInfo2) as TextView
+//                    //connectionLabel.text = response.toString()
+//                    Log.d("myTag", "Response is: ${response.toString()}");
+//                },
+//                Response.ErrorListener { errorresponse ->
+//                   // val  connectionLabel = findViewById<View>(R.id.PeernetInfo2) as TextView
+//                   // connectionLabel.text = errorresponse.toString()
+//                    Log.d("myTag",  errorresponse.toString());
+//                })
+
+            val url2 = "http://127.0.0.1:5125/warehouse/create/path?path=" + java.net.URLEncoder.encode("/sdcard/Download/readingSmalltalk.pdf", "utf-8")
+
+            val stringRequest2 = StringRequest(
+                Request.Method.GET, url2,
+                Response.Listener<String> { response ->
+                    //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+                    // Display the first 500 characters of the response string.
+                    // textView.text = "Response is: ${response.substring(0, 500)}"
+                    //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
+//                    val  connectionLabel = findViewById<View>(R.id.PeernetInfo2) as TextView
+//                    connectionLabel.text = response.toString()
+                      Log.d("myTag", "Response is: ${response.toString()}");
+
+                    // read hash from the json object and add to the blockchain
+                    val ResponseObject = JSONTokener(response.toString()).nextValue() as JSONObject
+
+                    if (ResponseObject.get("status") == 0) {
+                        val urlAddBlockChain = "http://127.0.0.1:5125/blockchain/file/add"
+
+                        val jsonobj = JSONObject()
+                        // Generate UUID
+                        jsonobj.put("id", UUID.randomUUID().toString())
+                        jsonobj.put("hash", ResponseObject.get("hash"))
+                        jsonobj.put("type", 5)
+                        jsonobj.put("format", 1)
+                        jsonobj.put("size", 2500)
+                        jsonobj.put("name", "readingSmalltalk.pdf")
+                        jsonobj.put("folder", "/sdcard/Download/")
+                        jsonobj.put("description", "I can C++ and Java But I can't read smalltalk")
+
+                        val jsonArrayObj = JSONArray()
+
+                        val JSONPostRequest = JSONObject()
+
+                        jsonArrayObj.put(0,jsonobj)
+
+                        JSONPostRequest.put("files",jsonArrayObj)
+
+
+
+                        Log.d("myTag",  JSONPostRequest.toString())
+
+
+
+                        val stringRequest = JsonObjectRequest(
+                            Request.Method.POST,urlAddBlockChain,JSONPostRequest,
+                            Response.Listener { response ->
+                                //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+                                // Display the first 500 characters of the response string.
+                                // textView.text = "Response is: ${response.substring(0, 500)}"
+                                //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
+                                //  val  connectionLabel1 = findViewById<View>(R.id.PeernetInfo1) as TextView
+                                // connectionLabel1.text = response.toString()
+                                Log.d("myTag1", "Response is: ${response}");
+
+                               // val ResponseObject = JSONTokener(response.toString()).nextValue() as JSONObject
+
+
+
+                            },
+                            Response.ErrorListener { errorresponse ->
+                                //  val  connectionLabel1 = findViewById<View>(R.id.PeernetInfo1) as TextView
+                                //  connectionLabel1.text = errorresponse.toString()
+                                Log.d("myTag",  errorresponse.toString());
+                            })
+
+                        queue.add(stringRequest)
+
+
+                    }
+
+
+
+
+
+
+                },
+                Response.ErrorListener { errorresponse ->
+//                    val  connectionLabel = findViewById<View>(R.id.PeernetInfo2) as TextView
+//                    connectionLabel.text = errorresponse.toString()
+                    Log.d("myTag",  errorresponse.toString());
+                })
+
+            queue.add(stringRequest2)
+
         }
+    }
+
+    private fun getRealPathFromURI(contentURI: Uri): String? {
+        val result: String
+        val cursor: Cursor? = contentResolver.query(contentURI, null, null, null, null)
+        if (cursor == null) { // Source is Dropbox or other similar local file path
+            result = contentURI.getPath().toString()
+        } else {
+            cursor.moveToFirst()
+            val idx: Int = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA)
+            result = cursor.getString(idx)
+            cursor.close()
+        }
+        return result
     }
 
     private fun requestAppPermissions() {

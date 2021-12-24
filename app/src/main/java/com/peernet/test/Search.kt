@@ -3,6 +3,9 @@ package com.peernet.test
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
+import android.telephony.mbms.DownloadRequest
 import android.util.Log
 import android.view.View
 import android.widget.*
@@ -10,9 +13,7 @@ import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
-import com.android.volley.DefaultRetryPolicy
 import com.android.volley.toolbox.JsonObjectRequest
-import mobile.Mobile
 import org.json.JSONObject
 import org.json.JSONTokener
 
@@ -24,6 +25,9 @@ class Search : AppCompatActivity() {
 
         // Go to the home page
         val Back = findViewById<Button>(R.id.Back)
+        // Explore / search result varaibles
+        var ResponseObjectSearch: JSONObject
+        ResponseObjectSearch = JSONObject("{\"keyword\": null}");
 
         // redirect back to the home page
         Back.setOnClickListener {
@@ -33,11 +37,12 @@ class Search : AppCompatActivity() {
 
         val queue = Volley.newRequestQueue(this)
 
+
         // Explore from golang
         // Mobile.searchResults()
 
         // Default display explore
-        val url = "http://127.0.0.1:8881/explore"
+        val url = "http://127.0.0.1:5125/explore"
 
 
 
@@ -53,16 +58,16 @@ class Search : AppCompatActivity() {
                // connectionLabel1.text = response.toString()
                  Log.d("myTag1", "Response is: ${response}");
 
-                val ResponseObject = JSONTokener(response.toString()).nextValue() as JSONObject
+                ResponseObjectSearch = JSONTokener(response.toString()).nextValue() as JSONObject
 
                 val searchResult = findViewById<ListView>(R.id.SearchResult)
 
-                val listItems = arrayOfNulls<String>(ResponseObject.getJSONArray("files").length())
+                val listItems = arrayOfNulls<String>(ResponseObjectSearch.getJSONArray("files").length())
 
-                for (i in 0 until ResponseObject.getJSONArray("files").length()) {
-                    val searchResultElement = ResponseObject.getJSONArray("files")[i]
+                for (i in 0 until ResponseObjectSearch.getJSONArray("files").length()) {
+                    val searchResultElement = ResponseObjectSearch.getJSONArray("files")[i]
 
-                    val ResponseObjectInLoop = JSONTokener(ResponseObject.getJSONArray("files")[i].toString()).nextValue() as JSONObject
+                    val ResponseObjectInLoop = JSONTokener(ResponseObjectSearch.getJSONArray("files")[i].toString()).nextValue() as JSONObject
 
                     listItems[i] = ResponseObjectInLoop.get("name").toString()
                 }
@@ -93,7 +98,7 @@ class Search : AppCompatActivity() {
 
 
             // Get search job UUID
-            val url = "http://127.0.0.1:8881/search"
+            val url = "http://127.0.0.1:5125/search"
 
 //            val params = HashMap<String,String>()
 //            params["term"] = search
@@ -133,7 +138,7 @@ class Search : AppCompatActivity() {
                     val ResponseObject = JSONTokener(response.toString()).nextValue() as JSONObject
 
                     // request to get Job response
-                    val url1 = "http://127.0.0.1:8881/search/result?id=" + ResponseObject.get("id")
+                    val url1 = "http://127.0.0.1:5125/search/result?id=" + ResponseObject.get("id")
 
                     Log.d("myTag",  url1);
 
@@ -148,16 +153,16 @@ class Search : AppCompatActivity() {
                             // connectionLabel1.text = response.toString()
                             Log.d("myTag1", "Response is: ${response}");
 
-                            val ResponseObject = JSONTokener(response.toString()).nextValue() as JSONObject
+                            ResponseObjectSearch = JSONTokener(response.toString()).nextValue() as JSONObject
 
                             val searchResult = findViewById<ListView>(R.id.SearchResult)
 
-                            val listItems = arrayOfNulls<String>(ResponseObject.getJSONArray("files").length())
+                            val listItems = arrayOfNulls<String>(ResponseObjectSearch.getJSONArray("files").length())
 
-                            for (i in 0 until ResponseObject.getJSONArray("files").length()) {
-                                val searchResultElement = ResponseObject.getJSONArray("files")[i]
+                            for (i in 0 until ResponseObjectSearch.getJSONArray("files").length()) {
+                                val searchResultElement = ResponseObjectSearch.getJSONArray("files")[i]
 
-                                val ResponseObjectInLoop = JSONTokener(ResponseObject.getJSONArray("files")[i].toString()).nextValue() as JSONObject
+                                val ResponseObjectInLoop = JSONTokener(ResponseObjectSearch.getJSONArray("files")[i].toString()).nextValue() as JSONObject
 
                                 listItems[i] = ResponseObjectInLoop.get("name").toString()
                             }
@@ -184,9 +189,65 @@ class Search : AppCompatActivity() {
 
             queue.add(stringRequest)
 
+            val searchResult = findViewById<ListView>(R.id.SearchResult)
+
+            // when a file is selected, Then start the download
+            searchResult.onItemClickListener = AdapterView.OnItemClickListener {parent,view, position, id ->
+                // Get the selected item text from ListView
+                val selectedItem = parent.getItemAtPosition(position) as String
+                Log.d("myTag",  selectedItem);
+
+                // appropriate information to do a download of the file
+                for (i in 0 until ResponseObjectSearch.getJSONArray("files").length()) {
+                    val searchResultElement = ResponseObjectSearch.getJSONArray("files")[i]
+
+                    val FileName = JSONTokener(ResponseObjectSearch.getJSONArray("files")[i].toString()).nextValue() as JSONObject
+                    // If there is match. Get the appropriate information such as Node ID.
+                    if (FileName.get("name").toString() == selectedItem) {
+                        // File hash
+                        val FileHash = FileName.get("hash").toString()
+                        Log.d("myTag", FileHash)
+                        val NodeID = FileName.get("nodeid").toString()
+                        Log.d("myTag", NodeID)
+
+                        // Get download path for the android phone
+                        val DownloadPath = "/data/local/tmp"
+
+                        Log.d("myTag",  DownloadPath.toString());
+
+                        // Get request URL to download the file
+                        val DownloadURL = "http://127.0.0.1:5125/download/start?path=test.txt" + "&hash=" + FileHash + "&node=" + NodeID
+
+                        val DownloadRequest = StringRequest(
+                            Request.Method.GET, DownloadURL,
+                            Response.Listener<String> { response ->
+                                //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+                                // Display the first 500 characters of the response string.
+                                // textView.text = "Response is: ${response.substring(0, 500)}"
+                                //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
+//                                val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+//                                connectionLabel.text = response.toString()
+                                 Log.d("myTag", "Response is: ${response.substring(0, 500)}");
+                            },
+                            Response.ErrorListener { errorresponse ->
+//                                val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+//                                connectionLabel.text = errorresponse.toString()
+                                Log.d("myTag",  errorresponse.toString());
+                            })
+
+                        queue.add(DownloadRequest)
 
 
+                    }
 
+
+                }
+
+            }
         }
+
+
     }
+
+
 }
