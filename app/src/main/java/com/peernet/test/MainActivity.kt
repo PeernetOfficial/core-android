@@ -2,6 +2,7 @@ package com.peernet.test
 
 import android.Manifest
 import android.content.ContentValues.TAG
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
@@ -41,6 +42,15 @@ import com.android.volley.toolbox.JsonRequest
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
+import android.net.NetworkInfo
+
+import android.net.ConnectivityManager
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.core.net.toFile
+import androidx.core.net.toUri
+import java.nio.file.Files
+import java.nio.file.Paths
 
 
 class MainActivity : AppCompatActivity() {
@@ -54,6 +64,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         Mobile.mobileMain(this.filesDir.absolutePath)
+
+        if (isNetwork(this)){
+
+            Toast.makeText(this, "Internet Connected", Toast.LENGTH_SHORT).show()
+
+        } else {
+
+            Toast.makeText(this, "Internet Is Not Connected", Toast.LENGTH_SHORT).show()
+        }
 
         val queue = Volley.newRequestQueue(this)
 
@@ -208,13 +227,31 @@ class MainActivity : AppCompatActivity() {
 //        })
 //    }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         val queue = Volley.newRequestQueue(this)
 
         if (requestCode == 777) {
-            var filePath = data?.data?.path
+            var filePath = data?.data?.isAbsolute
+
+            val path = FileUtils.getPath(this, data?.data)
+
+            Log.d("path",path.toString())
+
+            // convert Path string to URI
+            val pathUri = path.toUri()
+
+            // convert file to bytes
+
+            var encoded: ByteArray
+           // try {
+                encoded = Files.readAllBytes(Paths.get(path))
+                Log.d("bytes", encoded.toString())
+//            } catch (e: IOException) {
+//                Log.d("bytes", e.toString())
+//            }
 
           //  data?.data
 
@@ -256,7 +293,7 @@ class MainActivity : AppCompatActivity() {
 //                    Log.d("myTag",  errorresponse.toString());
 //                })
 
-            val url2 = "http://127.0.0.1:5125/warehouse/create/path?path=" + java.net.URLEncoder.encode("/sdcard/Download/readingSmalltalk.pdf", "utf-8")
+            val url2 = "http://127.0.0.1:5125/warehouse/create/path?path=" + java.net.URLEncoder.encode(path, "utf-8")
 
             val stringRequest2 = StringRequest(
                 Request.Method.GET, url2,
@@ -281,10 +318,10 @@ class MainActivity : AppCompatActivity() {
                         jsonobj.put("hash", ResponseObject.get("hash"))
                         jsonobj.put("type", 5)
                         jsonobj.put("format", 1)
-                        jsonobj.put("size", 2500)
-                        jsonobj.put("name", "readingSmalltalk.pdf")
-                        jsonobj.put("folder", "/sdcard/Download/")
-                        jsonobj.put("description", "I can C++ and Java But I can't read smalltalk")
+                        jsonobj.put("size", encoded.size.toString())
+                        jsonobj.put("name", path.substring(path.lastIndexOf("/")+1))
+                        jsonobj.put("folder", path)
+                        jsonobj.put("description", "")
 
                         val jsonArrayObj = JSONArray()
 
@@ -344,6 +381,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun isNetwork(context: Context): Boolean {
+        val cm = context
+            .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val netInfo = cm.activeNetworkInfo
+        return if (netInfo != null && netInfo.isConnectedOrConnecting) {
+            true
+        } else false
+    }
+
     private fun getRealPathFromURI(contentURI: Uri): String? {
         val result: String
         val cursor: Cursor? = contentResolver.query(contentURI, null, null, null, null)
@@ -356,6 +402,19 @@ class MainActivity : AppCompatActivity() {
             cursor.close()
         }
         return result
+    }
+
+    @JvmName("getRealPathFromURI1")
+    fun getRealPathFromURI(contentUri: Uri?): String? {
+        var res: String? = null
+        val proj = arrayOf(MediaStore.Images.Media.DATA)
+        val cursor = contentResolver.query(contentUri!!, proj, null, null, null)
+        if (null != cursor && cursor.moveToFirst()) {
+            val column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+            res = cursor.getString(column_index)
+            cursor.close()
+        }
+        return res
     }
 
     private fun requestAppPermissions() {

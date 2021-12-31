@@ -213,7 +213,7 @@ class Search : AppCompatActivity() {
                         // Get download path for the android phone
                         val DownloadPath = "/data/local/tmp"
 
-                        Log.d("myTag",  DownloadPath.toString());
+                        Log.d("download path",  DownloadPath.toString());
 
                         // Get request URL to download the file
                         val DownloadURL = "http://127.0.0.1:5125/download/start?path=test.txt" + "&hash=" + FileHash + "&node=" + NodeID
