@@ -1,6 +1,7 @@
 package com.peernet.test
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -8,6 +9,7 @@ import android.os.Environment
 import android.util.Log
 import android.widget.*
 import androidx.annotation.RequiresApi
+import androidx.core.net.toUri
 import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
@@ -16,6 +18,8 @@ import com.android.volley.toolbox.JsonObjectRequest
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.util.*
+import android.os.StrictMode
+import android.os.StrictMode.VmPolicy
 
 
 class Search : AppCompatActivity() {
@@ -23,6 +27,9 @@ class Search : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
+
+        val builder = VmPolicy.Builder()
+        StrictMode.setVmPolicy(builder.build())
 
         // Go to the home page
         val Back = findViewById<Button>(R.id.Back)
@@ -33,6 +40,28 @@ class Search : AppCompatActivity() {
         // redirect back to the home page
         Back.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+        }
+
+        val DownloadPath = this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+
+        val DownloadPathString = DownloadPath.toString()
+
+        // Open folder for downloaded files
+        val DownloadedFilesButton = findViewById<Button>(R.id.DownloadedFIles)
+
+        DownloadedFilesButton.setOnClickListener {
+            // open download path in the explorer
+            // openFolder(DownloadPath.toString())
+
+            val intent = Intent()
+                .setAction(Intent.ACTION_VIEW)
+            val mydir: Uri = Uri.parse("file://$DownloadPathString")
+            intent.setDataAndType(mydir, "*/*") // or use */*
+            //val mydir: Uri = Uri.parse("file://$DownloadPathString ")
+            //intent.setDataAndType(mydir, "*/*") // or use */*
+
+            // startActivityForResult(Intent.createChooser(intent, "Select a file"), 777)
             startActivity(intent)
         }
 
@@ -190,73 +219,88 @@ class Search : AppCompatActivity() {
 
             queue.add(stringRequest)
 
-            val searchResult = findViewById<ListView>(R.id.SearchResult)
 
-            // when a file is selected, Then start the download
-            searchResult.onItemClickListener = AdapterView.OnItemClickListener {parent,view, position, id ->
-                // Get the selected item text from ListView
-                val selectedItem = parent.getItemAtPosition(position) as String
-                Log.d("myTag",  selectedItem);
+        }
 
-                // appropriate information to do a download of the file
-                for (i in 0 until ResponseObjectSearch.getJSONArray("files").length()) {
-                    val searchResultElement = ResponseObjectSearch.getJSONArray("files")[i]
+        val searchResult = findViewById<ListView>(R.id.SearchResult)
 
-                    val FileName = JSONTokener(ResponseObjectSearch.getJSONArray("files")[i].toString()).nextValue() as JSONObject
-                    // If there is match. Get the appropriate information such as Node ID.
-                    if (FileName.get("name").toString() == selectedItem) {
-                        // File hash
-                        val FileHash = FileName.get("hash").toString()
-                        Log.d("myTag", FileHash)
-                        val NodeID = FileName.get("nodeid").toString()
-                        Log.d("myTag", NodeID)
+        // when a file is selected, Then start the download
+        searchResult.onItemClickListener = AdapterView.OnItemClickListener {parent,view, position, id ->
+            // Get the selected item text from ListView
+            val selectedItem = parent.getItemAtPosition(position) as String
+            Log.d("myTag",  selectedItem);
 
-                        // decode base64 file hash
-                        val FileHashByte: ByteArray = Base64.getDecoder().decode(FileHash)
+            // appropriate information to do a download of the file
+            for (i in 0 until ResponseObjectSearch.getJSONArray("files").length()) {
+                val searchResultElement = ResponseObjectSearch.getJSONArray("files")[i]
+
+                val FileName = JSONTokener(ResponseObjectSearch.getJSONArray("files")[i].toString()).nextValue() as JSONObject
+                // If there is match. Get the appropriate information such as Node ID.
+                if (FileName.get("name").toString() == selectedItem) {
+                    // File hash
+                    val FileHash = FileName.get("hash").toString()
+                    Log.d("myTag", FileHash)
+                    val NodeID = FileName.get("nodeid").toString()
+                    Log.d("myTag", NodeID)
+
+                    // decode base64 file hash
+                    val FileHashByte: ByteArray = Base64.getDecoder().decode(FileHash)
+                    val NodeHashByte: ByteArray = Base64.getDecoder().decode(NodeID)
 
 
 
 
-                        val DownloadPath = this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                    Log.d("NodeHash",  DownloadPath.toString());
 
-                        Log.d("download",  DownloadPath.toString());
+                    // Get request URL to download the file
+                    val DownloadURL = "http://127.0.0.1:5125/download/start?path=" + DownloadPath.toString() + "/" + FileName.get("name") + "&hash=" + FileHashByte.toHexString() + "&node=" + NodeHashByte.toHexString()
 
-                        // Get request URL to download the file
-                        val DownloadURL = "http://127.0.0.1:5125/download/start?path=" + java.net.URLEncoder.encode(DownloadPath.toString() + "/" + FileName.get("name"), "utf-8") + "&hash=" + java.net.URLEncoder.encode(FileHash, "utf-8") + "&node=" + java.net.URLEncoder.encode(NodeID, "utf-8")
-
-                        val DownloadRequest = StringRequest(
-                            Request.Method.GET, DownloadURL,
-                            Response.Listener<String> { response ->
-                                //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
-                                // Display the first 500 characters of the response string.
-                                // textView.text = "Response is: ${response.substring(0, 500)}"
-                                //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
+                    val DownloadRequest = StringRequest(
+                        Request.Method.GET, DownloadURL,
+                        Response.Listener<String> { response ->
+                            //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
+                            // Display the first 500 characters of the response string.
+                            // textView.text = "Response is: ${response.substring(0, 500)}"
+                            //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
 //                                val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
 //                                connectionLabel.text = response.toString()
-                                 Log.d("myTag", "Response is: ${response}");
-                            },
-                            Response.ErrorListener { errorresponse ->
+                            Log.d("myTag", "Response is: ${response}");
+                        },
+                        Response.ErrorListener { errorresponse ->
 //                                val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
 //                                connectionLabel.text = errorresponse.toString()
-                                Log.d("myTag",  errorresponse.toString());
-                            })
+                            Log.d("myTag",  errorresponse.toString());
+                        })
 
-                        queue.add(DownloadRequest)
-
-
-                    }
+                    queue.add(DownloadRequest)
 
 
                 }
 
+
             }
+
         }
 
 
     }
 
+    fun ByteArray.toHexString() = joinToString("") { "%02x".format(it) }
 
+    fun openFolder(location: String) {
+        // location = "/sdcard/my_folder";
+//        val intent = Intent(Intent.ACTION_VIEW)
+//        val mydir: Uri = Uri.parse("file://$location")
+//        intent.setDataAndType(mydir, "application/*") // or use */*
+      //  startActivity(intent)
 
+        val intent = Intent()
+            .setAction(Intent.ACTION_VIEW)
+        val mydir: Uri = Uri.parse("file://$location")
+        intent.setDataAndType(mydir, "*/*") // or use */*
+
+        startActivity(Intent.createChooser(intent, "Open folder"))
+    }
 
 
 }

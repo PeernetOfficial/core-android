@@ -21,14 +21,22 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Test"
         android:usesCleartextTraffic="true">
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provided_paths" />
+        </provider>
+        <meta-data
+            android:name="com.google.android.actions"
+            android:resource="@xml/provided_paths" />
+
         <activity
             android:name=".Blockchain_info"
             android:exported="true" />
-        <activity
-            android:name=".blockchainInfo"
-            android:exported="true"
-            android:label="@string/title_activity_blockchain_info"
-            android:theme="@style/Theme.Test.NoActionBar" />
         <activity
             android:name=".Search"
             android:exported="true" />

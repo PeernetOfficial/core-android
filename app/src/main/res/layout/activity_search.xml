@@ -50,4 +50,14 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0" />
 
+    <Button
+        android:id="@+id/DownloadedFIles"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="View Downloaded files"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.912"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteY="4dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
