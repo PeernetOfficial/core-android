@@ -1,14 +1,13 @@
 package com.peernet.test
 
 import android.content.Intent
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
-import android.telephony.mbms.DownloadRequest
 import android.util.Log
-import android.view.View
 import android.widget.*
+import androidx.annotation.RequiresApi
 import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
@@ -16,9 +15,11 @@ import com.android.volley.toolbox.Volley
 import com.android.volley.toolbox.JsonObjectRequest
 import org.json.JSONObject
 import org.json.JSONTokener
+import java.util.*
 
 
 class Search : AppCompatActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
@@ -210,13 +211,18 @@ class Search : AppCompatActivity() {
                         val NodeID = FileName.get("nodeid").toString()
                         Log.d("myTag", NodeID)
 
-                        // Get download path for the android phone
-                        val DownloadPath = "/data/local/tmp"
+                        // decode base64 file hash
+                        val FileHashByte: ByteArray = Base64.getDecoder().decode(FileHash)
 
-                        Log.d("download path",  DownloadPath.toString());
+
+
+
+                        val DownloadPath = this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+
+                        Log.d("download",  DownloadPath.toString());
 
                         // Get request URL to download the file
-                        val DownloadURL = "http://127.0.0.1:5125/download/start?path=test.txt" + "&hash=" + FileHash + "&node=" + NodeID
+                        val DownloadURL = "http://127.0.0.1:5125/download/start?path=" + java.net.URLEncoder.encode(DownloadPath.toString() + "/" + FileName.get("name"), "utf-8") + "&hash=" + java.net.URLEncoder.encode(FileHash, "utf-8") + "&node=" + java.net.URLEncoder.encode(NodeID, "utf-8")
 
                         val DownloadRequest = StringRequest(
                             Request.Method.GET, DownloadURL,
@@ -227,7 +233,7 @@ class Search : AppCompatActivity() {
                                 //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
 //                                val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
 //                                connectionLabel.text = response.toString()
-                                 Log.d("myTag", "Response is: ${response.substring(0, 500)}");
+                                 Log.d("myTag", "Response is: ${response}");
                             },
                             Response.ErrorListener { errorresponse ->
 //                                val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
@@ -248,6 +254,9 @@ class Search : AppCompatActivity() {
 
 
     }
+
+
+
 
 
 }

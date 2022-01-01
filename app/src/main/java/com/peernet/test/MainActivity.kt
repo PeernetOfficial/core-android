@@ -45,6 +45,7 @@ import org.json.JSONTokener
 import android.net.NetworkInfo
 
 import android.net.ConnectivityManager
+import android.os.Handler
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.net.toFile
@@ -54,9 +55,6 @@ import java.nio.file.Paths
 
 
 class MainActivity : AppCompatActivity() {
-
-    //private val client = OkHttpClient()
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -125,12 +123,12 @@ class MainActivity : AppCompatActivity() {
                         isConnected.text = ResponseObject.get("isconnected").toString()
                         numPeers.text = ResponseObject.get("countpeerlist").toString()
 
-                       // connectionLabel.text = response.toString()
+                        // connectionLabel.text = response.toString()
                         // Log.d("myTag", "Response is: ${response.substring(0, 500)}");
                     },
                     Response.ErrorListener { errorresponse ->
                         //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
-                       // connectionLabel.text = errorresponse.toString()
+                        // connectionLabel.text = errorresponse.toString()
                         Log.d("myTag",  errorresponse.toString());
                     })
 
@@ -147,7 +145,7 @@ class MainActivity : AppCompatActivity() {
                         //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
 //                        val  connectionLabel = findViewById<View>(R.id.PeernetInfo2) as TextView
 //                        connectionLabel.text = response.toString()
-                   //     Log.d("myTag", "Response is: ${response.substring(0, 500)}");
+                        //     Log.d("myTag", "Response is: ${response.substring(0, 500)}");
                     },
                     Response.ErrorListener { errorresponse ->
 //                        val  connectionLabel = findViewById<View>(R.id.PeernetInfo2) as TextView
@@ -179,6 +177,14 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        // open files added in the local blockchain
+        val FilesAdded = findViewById<Button>(R.id.FIlesAdded)
+
+        FilesAdded.setOnClickListener {
+            val intent = Intent(this, Blockchain_info::class.java)
+            startActivity(intent)
+        }
+
 
 
 
@@ -190,7 +196,7 @@ class MainActivity : AppCompatActivity() {
 
         //   run("http://127.0.0.1:5125/status")
 
-       // requestAppPermissions();
+        // requestAppPermissions();
         //Mobilecore.mobileCoreStart()
 
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -238,7 +244,7 @@ class MainActivity : AppCompatActivity() {
 
             val path = FileUtils.getPath(this, data?.data)
 
-            Log.d("path",path.toString())
+            Log.d("path",path.substring(0, path.lastIndexOf('/')))
 
             // convert Path string to URI
             val pathUri = path.toUri()
@@ -246,18 +252,18 @@ class MainActivity : AppCompatActivity() {
             // convert file to bytes
 
             var encoded: ByteArray
-           // try {
-                encoded = Files.readAllBytes(Paths.get(path))
-                Log.d("bytes", encoded.toString())
+            // try {
+            encoded = Files.readAllBytes(Paths.get(path))
+            Log.d("bytes", encoded.toString())
 //            } catch (e: IOException) {
 //                Log.d("bytes", e.toString())
 //            }
 
-          //  data?.data
+            //  data?.data
 
-           // imageFile = new File(getRealPathFromURI(selectedImageURI));
+            // imageFile = new File(getRealPathFromURI(selectedImageURI));
 
-        //    filePath = File((data?.data?.let { getRealPathFromURI(it) })).toString()
+            //    filePath = File((data?.data?.let { getRealPathFromURI(it) })).toString()
 
 //            var file = File(
 //                Environment.getExternalStorageDirectory().absolutePath,
@@ -304,7 +310,7 @@ class MainActivity : AppCompatActivity() {
                     //connectionLabel.text= "Response is: ${response.substring(0, 500)}"
 //                    val  connectionLabel = findViewById<View>(R.id.PeernetInfo2) as TextView
 //                    connectionLabel.text = response.toString()
-                      Log.d("myTag", "Response is: ${response.toString()}");
+                    Log.d("myTag", "Response is: ${response.toString()}");
 
                     // read hash from the json object and add to the blockchain
                     val ResponseObject = JSONTokener(response.toString()).nextValue() as JSONObject
@@ -318,9 +324,9 @@ class MainActivity : AppCompatActivity() {
                         jsonobj.put("hash", ResponseObject.get("hash"))
                         jsonobj.put("type", 5)
                         jsonobj.put("format", 1)
-                        jsonobj.put("size", encoded.size.toString())
+                        jsonobj.put("size", encoded.size)
                         jsonobj.put("name", path.substring(path.lastIndexOf("/")+1))
-                        jsonobj.put("folder", path)
+                        jsonobj.put("folder", path.substring(0, path.lastIndexOf('/')))
                         jsonobj.put("description", "")
 
                         val jsonArrayObj = JSONArray()
@@ -348,7 +354,7 @@ class MainActivity : AppCompatActivity() {
                                 // connectionLabel1.text = response.toString()
                                 Log.d("myTag1", "Response is: ${response}");
 
-                               // val ResponseObject = JSONTokener(response.toString()).nextValue() as JSONObject
+                                // val ResponseObject = JSONTokener(response.toString()).nextValue() as JSONObject
 
 
 
@@ -423,7 +429,7 @@ class MainActivity : AppCompatActivity() {
         }
         if (hasReadPermissions() && hasWritePermissions()) {
 
-         //  connectionLabel.text = "lol123"
+            //  connectionLabel.text = "lol123"
 
             return
         }
@@ -448,7 +454,6 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
         ) == PackageManager.PERMISSION_GRANTED
     }
-
 
 
 
