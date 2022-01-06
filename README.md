@@ -7,6 +7,9 @@
 4. [Build from gomobile](#build-from-gomobile)
 5. [Implementation](#implementation)
 6. [Indentified issues](#indentified-issues)
+7. [Potential fixes/improvements](#potential-fixes/improvements) 
+
+<br>
 
 ## Introduction
 Testing playground to support the peernet protocol on android phones. The implementation above is a proof of concept android application. 
@@ -16,10 +19,12 @@ with Go mobile.
 ### Screenshots:
 ![image](https://user-images.githubusercontent.com/31743758/148444431-3cb045a3-4950-4f57-9148-84756f6cfcf6.png)
 
+<br>
 
 ## Disclaimer:
 It is important to note that there could be scenarios where the phone could potencially freeze. The current commits are currently unstable. 
 
+<br>
 
 ## Current Features:
 - Upload file to peernet 
@@ -27,6 +32,8 @@ It is important to note that there could be scenarios where the phone could pote
    2. Add file to blockchain
 - Download file from peernet 
 - View latest files uploaded 
+
+<br>
 
 ## Build from gomobile: 
 The following steps below demonstrate how to build 
@@ -130,8 +137,33 @@ git clone https://github.com/PeernetOfficial/core-android
 - Open the project in android studio and click the play button. 
 ![image](https://user-images.githubusercontent.com/31743758/148443246-79ce16c3-d2a0-483a-9396-620deafda6ee.png)
 
-## Implementation
-- // Todo
+- Before opening the app ensure internal storage is enabled.
+
+ ![image](https://user-images.githubusercontent.com/31743758/148446496-a56f6da9-a484-45cd-88be-4791c58c54a1.png)
+
+<br>
+
+## Implementation 
+The following is built using Kotlin, gomobile. Go code is the peernet core protocol. The Kotlin interacts with the with generated .aar (i.e which is the output when compiling using gomobile). The .aar is the peernet core protocol implementation. The interactions with the Go code are the following:
+- Call the exported function ```MobileMain(<android application storage path>)```. This is the only function binded to the koltin code. The application path 
+  is dervired from the kotlin code. 
+- On calling ```MobileMain(<android application storage path>)``` peernet core is started and the webapi is started as well. The api address is the following 
+  ```http://127.0.0.1:5125```. 
+- The kotlin code only interacts with api calls from the following steps.
+
+Note: The gomobile core only currently runs the foreground when the application is open. 
+
+
+### Permissions manually needed to be enabled
+- Internal storage 
+### Android manifest information 
+- android.permission.READ_EXTERNAL_STORAGE
+- android.permission.WRITE_EXTERNAL_STORAGE
+- android.permission.INTERNET
+- android.permission.ACCESS_NETWORK_STATE
+- android.permission.ACCESS_WIFI_STATE
+- Due to http traffic:
+  1. android:usesCleartextTraffic="true"
 
 ## Indentified issues 
 The core-android only supports upto Android API level 29.
@@ -145,6 +177,8 @@ The following is a list of the ways that apps are affected by this change (from 
  
 source (https://developer.android.com/training/articles/user-data-ids#mac-11-plus)
 
+<br>
+
 #### Possible solution 
 "
 SDK 30 prohibits syscall.NetlinkRIB(syscall.RTM_GETADDR, ...) which Go's net.Interfaces uses. Implement an Android specific version of net.Interfaces to use instead.
@@ -154,6 +188,15 @@ Passing primitive types across JNI is relatively straightforward, passing a sing
 PR with a solution: https://github.com/tailscale/tailscale-android/pull/21 
 
 [Track issue](https://github.com/PeernetOfficial/core/issues/83)
+
+<br>
+
+## Potential fixes/improvements 
+- Providing compatability to API level 30.
+- Cleaning up android core code for lesser redundency and readability.
+- Running the core as a background process.
+- UI improvements for ease of use 
+- Displaying downloaded files in the app itself 
 
 
 
