@@ -1,4 +1,14 @@
 # core-android
+
+## Topics
+1. [Introduciton](#introduction)
+2. [Disclaimer](#disclaimer)
+3. [Current features](#current-features)
+4. [Build from gomobile](#build-from-gomobile)
+5. [Implementation](#implementation)
+6. [Indentified issues](#indentified-issues)
+
+## Introduction
 Testing playground to support the peernet protocol on android phones. The implementation above is a proof of concept android application. 
 There is currently no modifications done to the peernet core to get it running on android phones. As a brief the entire project is done using Kotlin 
 with Go mobile.
@@ -123,7 +133,7 @@ git clone https://github.com/PeernetOfficial/core-android
 ## Implementation
 - // Todo
 
-## Indentified issue 
+## Indentified issues 
 The core-android only supports upto Android API level 29.
 
 ### Api level 30 issue 
