@@ -1,4 +1,10 @@
-# core-android
+<h1 align="center">
+  <br>
+	<h1>Core Android</h1>
+  <br>
+</h1>
+
+![image](https://user-images.githubusercontent.com/31743758/148452430-a96bbc78-bcfe-4b6b-950a-f4257e63c426.png)
 
 ## Topics
 1. [Introduciton](#introduction)
@@ -7,7 +13,7 @@
 4. [Build from gomobile](#build-from-gomobile)
 5. [Implementation](#implementation)
 6. [Indentified issues](#indentified-issues)
-7. [Potential fixes/improvements](#potential-fixes/improvements) 
+7. [Potential fixes/improvements](#potential-fixesimprovements) 
 
 <br>
 
@@ -27,11 +33,15 @@ It is important to note that there could be scenarios where the phone could pote
 <br>
 
 ## Current Features:
-- Upload file to peernet 
-   1. Add files to warehouse 
-   2. Add file to blockchain
-- Download file from peernet 
-- View latest files uploaded 
+1. User perpective:
+   - Upload file to peernet 
+     1. Add files to warehouse 
+     2. Add file to blockchain
+   - Download file from peernet 
+   - View latest files uploaded 
+2. Developers perpective
+   - Full support of peernet core (till Api level 29)
+   - Ability to interact with peernet core via API calls from peernet server running inside the phone. 
 
 <br>
 
@@ -188,8 +198,6 @@ Passing primitive types across JNI is relatively straightforward, passing a sing
 PR with a solution: https://github.com/tailscale/tailscale-android/pull/21 
 
 [Track issue](https://github.com/PeernetOfficial/core/issues/83)
-
-<br>
 
 ## Potential fixes/improvements 
 - Providing compatability to API level 30.
