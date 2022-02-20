@@ -89,7 +89,7 @@ func MobileMain(path string) {
 	// save modified config changes
 	core.SaveConfig(path+"Config.yaml", &config)
 
-	backendInit, status, err := core.Init("Your application/1.0", path+"Config.yaml", nil)
+	backendInit, status, err := core.Init("Your application/1.0", path+"Config.yaml", nil, nil)
 	if status != core.ExitSuccess {
 		fmt.Printf("Error %d initializing config: %s\n", status, err.Error())
 		return
