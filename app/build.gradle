@@ -7,7 +7,7 @@ android {
     compileSdk 31
 
     defaultConfig {
-        applicationId "com.peernet.test"
+        applicationId "com.peernet.mobile"
         minSdk 24
         targetSdk 31
         versionCode 1
