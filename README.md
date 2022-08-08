@@ -49,98 +49,16 @@ It is important to note that there could be scenarios where the phone could pote
 The following steps below demonstrate how to build 
 the application:
 - Create go project with the package called mobile
-```
+
 ## The following applies for linux 
-- mkdir mobile 
-- cd mobile/
-- go mod init <module name>
-- touch mobile.go
-```
-- add to ```mobile.go```
-```go
-package mobile
 
-import (
-	"fmt"
-	"github.com/PeernetOfficial/core"
-	"github.com/PeernetOfficial/core/webapi"
-	"github.com/google/uuid"
-	"net/http"
-	"time"
-)
-
-// MobileMain The following function is called as a bind function
-// from the Kotlin implementation
-func MobileMain(path string) {
-
-	var config core.Config
-
-	// Load the config file
-	core.LoadConfig(path+"Config.yaml", &config)
-
-	//Setting modified paths in the config file
-	config.SearchIndex = path + "data/search_Index/"
-	config.BlockchainGlobal = path + "data/blockchain/"
-	config.BlockchainMain = path + "data/blockchain_main/"
-	config.WarehouseMain = path + "data/warehouse/"
-	config.GeoIPDatabase = path + "data/GeoLite2-City.mmdb"
-	config.LogFile = path + "data/log.txt"
-    
-	// save modified config changes
-	core.SaveConfig(path+"Config.yaml", &config)
-
-	backendInit, status, err := core.Init("Your application/1.0", path+"Config.yaml", nil, nil)
-	if status != core.ExitSuccess {
-		fmt.Printf("Error %d initializing config: %s\n", status, err.Error())
-		return
-	}
-
-	// start config api server
-	webapi.Start(backendInit, []string{"127.0.0.1:5125"}, false, "", "", 10*time.Second, 10*time.Second, uuid.Nil)
-
-	backendInit.Connect()
-
-	// Checks if the go code can access the internet
-	if !connected() {
-		fmt.Print("Not connected to the internet ")
-	} else {
-		fmt.Print("Connected")
-	}
-
-}
-
-func connected() (ok bool) {
-	_, err := http.Get("http://clients3.google.com/generate_204")
-	if err != nil {
-		return false
-	}
-	return true
-}
-```
-- Install go mobile 
-```
-go install golang.org/x/mobile/cmd/gomobile@latest
-```
-- Initialize go mobile 
-```
-gomobile init
-```
-- Add path for Android NDK 
-```
-export ANDROID_HOME=$HOME/Android/Sdk
-```
-- Generate .aar and .jar file 
-```
-gomobile bind -target android .
-
-Output:
-mobile.aar  mobile-sources.jar
-```
 - clone the following repo
 ```
 git clone https://github.com/PeernetOfficial/core-android
 ```
-- add the following files(i.e mobile.aar,mobile-sources.jar) to the following path. Overwrite it if the file already exists 
+- add the following files(i.e mobile.aar,mobile-sources.jar) to the following path. Overwrite it if the file already exists.
+
+Instructions to generate .aar and .jar files: https://github.com/PeernetOfficial/Core-Mobile#readme. 
 ```
 /<path of the repo>/core-android/app/libs/
 ```
