@@ -1,67 +1,70 @@
 package com.peernet.test
 
 import android.Manifest
-import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
+import android.net.ConnectivityManager
 import android.net.Uri
-import android.os.Bundle
-import android.view.View
-import android.widget.TextView
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.vmadalin.easypermissions.EasyPermissions
-import com.vmadalin.easypermissions.annotations.AfterPermissionGranted
-import mobile.Mobile
-import androidx.core.app.ActivityCompat.requestPermissions
-
+import android.net.wifi.WifiManager
 import android.os.Build
-import android.provider.Settings
+import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
+import android.view.View
 import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat.requestPermissions
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import com.android.volley.Request
-
-import com.android.volley.Request.Method.GET
 import com.android.volley.Response
+import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.io.IOException
-import java.util.*
-import kotlin.concurrent.schedule
-import android.provider.MediaStore
-import java.io.File
-import android.os.Environment
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.JsonRequest
+import mobile.Mobile
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
-import android.net.NetworkInfo
-
-import android.net.ConnectivityManager
-import android.os.Handler
-import android.widget.Toast
-import androidx.annotation.RequiresApi
-import androidx.core.net.toFile
-import androidx.core.net.toUri
 import java.nio.file.Files
 import java.nio.file.Paths
+import android.net.wifi.WifiManager.MulticastLock;
+import java.util.*
+import kotlin.concurrent.schedule
 
 
 class MainActivity : AppCompatActivity() {
+
+    private val wifiManager: WifiManager get() = this.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Mobile.mobileMain(this.filesDir.absolutePath)
+        val Interface = GetInterfacesGo.GetInterfacesAsString()
+
+        Log.d("Interface",  Interface);
+
+        // See issue #735: Android 11 blocks local discovery if we did not acquire MulticastLock.
+        // See issue #735: Android 11 blocks local discovery if we did not acquire MulticastLock.
+        var multicastLock =
+            wifiManager.createMulticastLock("multicastLock")
+        multicastLock.setReferenceCounted(true)
+        multicastLock.acquire()
+
+
+        // Start Web Server from the Android side to broadcast
+        // the information of the network interface
+//        TinyWebServer.startServer("localhost",9000, "/web/public_html");
+
+        Mobile.mobileMain(this.filesDir.absolutePath,Interface)
 
         if (isNetwork(this)){
 
@@ -124,7 +127,7 @@ class MainActivity : AppCompatActivity() {
                         numPeers.text = ResponseObject.get("countpeerlist").toString()
 
                         // connectionLabel.text = response.toString()
-                        // Log.d("myTag", "Response is: ${response.substring(0, 500)}");
+                        Log.d("myTag", "Response is: ${response}");
                     },
                     Response.ErrorListener { errorresponse ->
                         //val  connectionLabel = findViewById<View>(R.id.PeernetInfo) as TextView
@@ -214,6 +217,11 @@ class MainActivity : AppCompatActivity() {
 //            connectionLabel.text = Mobilecore.mobileCoreStart().toString()
 //        }
 
+        if (multicastLock != null) {
+            multicastLock.release();
+            multicastLock = null;
+        }
+
     }
 
 //    fun run(url: String) {
@@ -244,7 +252,7 @@ class MainActivity : AppCompatActivity() {
 
             val path = FileUtils.getPath(this, data?.data)
 
-            Log.d("path",path.substring(0, path.lastIndexOf('/')))
+            //Log.d("path",path.substring(0, path.lastIndexOf('/')))
 
             // convert Path string to URI
             val pathUri = path.toUri()
